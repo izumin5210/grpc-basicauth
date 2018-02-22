@@ -29,6 +29,10 @@
   go-tests = true
   unused-packages = true
 
+  [[prune.project]]
+    name = "github.com/grpc-ecosystem/go-grpc-middleware"
+    unused-packages = false
+
 [[constraint]]
   name = "google.golang.org/grpc"
   version = "1.10.0"
