@@ -30,3 +30,23 @@ func StreamServerInterceptor(username, password string, opts ...BasicAuthOption)
 		return handler(srv, stream)
 	}
 }
+
+// UnaryClientInterceptor returns an unary interceptor to attach basic username and password to metadata.
+func UnaryClientInterceptor(username, password string, opts ...BasicAuthOption) grpc.UnaryClientInterceptor {
+	o := createBasicAuthOptions(username, password, opts)
+	attachMD := o.createAttachMDFunc()
+
+	return func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
+		return invoker(attachMD(ctx), method, req, reply, cc, opts...)
+	}
+}
+
+// StreamClientInterceptor returns a stream interceptor to attach basic username and password to metadata.
+func StreamClientInterceptor(username, password string, opts ...BasicAuthOption) grpc.StreamClientInterceptor {
+	o := createBasicAuthOptions(username, password, opts)
+	attachMD := o.createAttachMDFunc()
+
+	return func(ctx context.Context, desc *grpc.StreamDesc, cc *grpc.ClientConn, method string, streamer grpc.Streamer, opts ...grpc.CallOption) (grpc.ClientStream, error) {
+		return streamer(attachMD(ctx), desc, cc, method, opts...)
+	}
+}

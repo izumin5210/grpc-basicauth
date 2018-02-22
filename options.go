@@ -6,6 +6,7 @@ import (
 
 	"github.com/grpc-ecosystem/go-grpc-middleware/auth"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 )
 
@@ -49,6 +50,22 @@ func (o *BasicAuthOptions) endocdedCredential() string {
 	return base64.StdEncoding.EncodeToString(
 		[]byte(o.username + ":" + o.password),
 	)
+}
+
+func (o *BasicAuthOptions) createAttachMDFunc() func(context.Context) context.Context {
+	if o.username == "" && o.password == "" {
+		return func(c context.Context) context.Context {
+			return c
+		}
+	}
+
+	md := metadata.New(map[string]string{
+		"authorization": "basic " + o.endocdedCredential(),
+	})
+
+	return func(c context.Context) context.Context {
+		return metadata.NewOutgoingContext(c, md)
+	}
 }
 
 func (o *BasicAuthOptions) createAuthFunc() grpc_auth.AuthFunc {
